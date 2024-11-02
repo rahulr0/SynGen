@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SynGen</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <h1 class="title">SynGen</h1>
+
+    <div class="form-container">
+        <form action="{{ url_for('index') }}" method="POST" enctype="multipart/form-data" id="data-form">
+            
+            <!-- API Key input (required for both text and multimedia) -->
+            <div class="form-group">
+                <label for="api-key">API Key:</label>
+                <input type="text" id="api-key" name="api_key" placeholder="Enter your API key" required>
+            </div>
+            
+            <!-- Buttons to select data type -->
+            <div class="button-group">
+                <button type="button" id="text-input" class="data-type-button active">Text Data</button>
+                <button type="button" id="multimedia-input" class="data-type-button">Multimedia Data</button>
+            </div>
+
+            <!-- Text prompt input (Visible when "Text Data" is selected) -->
+            <div id="text-prompt" class="form-group">
+                <label for="textarea">Text Prompt:</label>
+                <textarea name="textarea" id="textarea" rows="4" placeholder="Enter your text prompt here"></textarea>
+            </div>
+
+            <!-- Multimedia selection and prompt (Visible when "Multimedia Data" is selected) -->
+            <div id="media-type" class="form-group" style="display:none;">
+                <label for="media-select">Choose File Type:</label>
+                <select id="media-select" name="media_type">
+                    <option value="image" selected>Image</option>
+                    <option value="audio">Audio</option>
+                    <option value="video">Video</option>
+                </select>
+            </div>
+
+            <!-- Prompt for multimedia (Visible when "Multimedia Data" is selected) -->
+            <div id="multimedia-prompt" class="form-group" style="display:none;">
+                <label for="media-prompt">Query Prompt:</label>
+                <input type="text" id="media-prompt" name="media_prompt" placeholder="Enter your query prompt here">
+            </div>
+
+            <!-- File upload (Visible when "Multimedia Data" is selected) -->
+            <div id="upload-file" class="form-group" style="display:none;">
+                <label for="fileUpload">Upload File:</label>
+                <input type="file" id="fileUpload" name="fileUpload">
+            </div>
+
+            <!-- Category option for multimedia -->
+            <div id="category-option" class="form-group" style="display:none;">
+                <label for="category-select">Category Option:</label>
+                <select id="category-select" name="category_option">
+                    <option value="api_categorize">Let API Categorize</option>
+                    <option value="user_categories">Provide Categories</option>
+                </select>
+            </div>
+
+            <!-- User-defined categories input (Visible when "Provide Categories" is selected) -->
+            <div id="user-categories" class="form-group" style="display:none;">
+                <label for="categories">Enter Categories (comma-separated):</label>
+                <input type="text" id="categories" name="categories" placeholder="e.g., nature, technology, animals">
+            </div>
+
+            <!-- Submit buttons for text and multimedia -->
+            <button type="submit" id="text-submit" name="view" class="submit-btn">Submit Text Data</button>
+            <button type="submit" id="multimedia-submit" name="submit_multi" class="submit-btn" style="display:none;">Submit Multimedia Data</button>
+        </form>
+        <br><br>
+        <div class="error-message" id="error-message">Wrong file type! Please upload a valid file.</div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="loading-spinner" style="display:none;">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- JavaScript to toggle visibility of form elements based on selected data type -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('text-input');
+            const multimediaInput = document.getElementById('multimedia-input');
+            const textPrompt = document.getElementById('text-prompt');
+            const mediaType = document.getElementById('media-type');
+            const multimediaPrompt = document.getElementById('multimedia-prompt');
+            const uploadFile = document.getElementById('upload-file');
+            const textSubmit = document.getElementById('text-submit');
+            const multimediaSubmit = document.getElementById('multimedia-submit');
+            const categoryOption = document.getElementById('category-option');
+            const userCategories = document.getElementById('user-categories');
+            const categorySelect = document.getElementById('category-select');
+            const fileUpload = document.getElementById('fileUpload');
+            const errorMessage = document.getElementById('error-message');
+
+            function toggleForm() {
+                if (multimediaInput.classList.contains('active')) {
+                    textPrompt.style.display = 'none';
+                    mediaType.style.display = 'block';
+                    multimediaPrompt.style.display = 'block';
+                    uploadFile.style.display = 'block';
+                    categoryOption.style.display = 'block';
+                    textSubmit.style.display = 'none';
+                    multimediaSubmit.style.display = 'block';
+                } else {
+                    textPrompt.style.display = 'block';
+                    mediaType.style.display = 'none';
+                    multimediaPrompt.style.display = 'none';
+                    uploadFile.style.display = 'none';
+                    categoryOption.style.display = 'none';
+                    userCategories.style.display = 'none';
+                    textSubmit.style.display = 'block';
+                    multimediaSubmit.style.display = 'none';
+                }
+            }
+
+            // Toggle user categories input based on category option
+            categorySelect.addEventListener('change', function() {
+                if (categorySelect.value === 'user_categories') {
+                    userCategories.style.display = 'block';
+                } else {
+                    userCategories.style.display = 'none';
+                }
+            });
+
+            // Set initial state
+            toggleForm();
+
+            // Add event listeners to toggle based on button selection
+            textInput.addEventListener('click', function() {
+                textInput.classList.add('active');
+                multimediaInput.classList.remove('active');
+                toggleForm();
+            });
+
+            multimediaInput.addEventListener('click', function() {
+                multimediaInput.classList.add('active');
+                textInput.classList.remove('active');
+                toggleForm();
+            });
+
+            // Validate file type on form submission
+            const form = document.getElementById('data-form');
+            form.addEventListener('submit', function(event) {
+                const selectedMediaType = document.getElementById('media-select').value;
+                const file = fileUpload.files[0];
+                const validFileTypes = {
+                    image: ['image/jpeg', 'image/png'],
+                    audio: ['audio/mpeg', 'audio/wav'],
+                    video: ['video/mp4', 'video/x-msvideo','image/gif']
+                };
+
+                if (multimediaInput.classList.contains('active') && file) {
+                    if (!validFileTypes[selectedMediaType].includes(file.type)) {
+                        event.preventDefault();
+                        errorMessage.style.display = 'block';
+                    } else {
+                        errorMessage.style.display = 'none'; 
+                        document.getElementById('loading-spinner').style.display = 'flex'; 
+                    }
+                } else {
+                    errorMessage.style.display = 'none'; 
+                    document.getElementById('loading-spinner').style.display = 'flex';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

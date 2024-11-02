@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* Base Styling */
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 2.8em;
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .result-container {
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 12px;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            color: #333;
+            text-align: center;
+        }
+
+        pre {
+            font-size: 1.2em;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f0f4ff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: auto;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            font-size: 1.1em;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Media Queries for responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 15px;
+            }
+
+            h2 {
+                font-size: 2.2em;
+            }
+
+            .btn {
+                padding: 12px 24px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Result</h2>
+
+        <!-- Display multimedia categorization result -->
+        <div class="result-container">
+
+            <!-- Display the image if available -->
+            {% if image %}
+                <h3>Uploaded Image:</h3>
+                <img src="{{ url_for('static', filename='images/' ~ image) }}" alt="Uploaded Image">
+            {% endif %}
+
+            <!-- Display the image if available -->
+            {% if gif %}
+                <h3>Uploaded GIF:</h3>
+                <img src="{{ url_for('static', filename='videos/' ~ gif) }}" alt="Uploaded Image">
+            {% endif %}
+
+            <!-- Display the video if available -->
+            {% if video %}
+            <h3>Uploaded Video:</h3>
+            
+            <video controls>
+                <source src="{{ url_for('static', filename='videos/' ~ video) }}" type="video/mp4">
+            </video>
+            {% endif %}
+
+            <!-- Display the audio if available -->
+            {% if audio %}
+            <h3>Uploaded Audio:</h3>
+            <audio controls>
+                <source src="{{ url_for('static', filename='audios/' ~ audio) }}" type="audio/mpeg">
+            </audio>
+            {% endif %}
+
+            {% if query %}
+                <h3>Query Answer:</h3>
+                <pre>{{ query }}</pre>
+                <br>
+            {% endif %}
+
+            <h3>Result:</h3>
+            <pre>{{ result }}</pre>
+
+            
+        </div>
+
+        <div class="btn-group">
+            <a href="{{ url_for('index') }}" class="btn">Go Back</a>
+        </div>
+    </div>
+
+</body>
+</html>
